@@ -69,14 +69,22 @@ int sync_to_queue(struct set_command_sync_data * data){
 	
 	(void)memcpy(data_buf->mtext , (char *)data , sizeof(struct set_command_sync_data));
 
-	int ret = msgsnd(MSG_QUEUE_KEY , data_buf , sizeof(struct set_command_sync_data) , IPC_NOWAIT);
-	if (ret == -1) {
-		serverLog(LL_WARNING , "send to queue failed , %s" , strerror(errno));
+	while (1) {
+		int ret = msgsnd(MSG_QUEUE_KEY , data_buf , sizeof(struct set_command_sync_data) , IPC_NOWAIT);
+		if (ret == -1 && errno != EAGAIN) {
+			serverLog(LL_WARNING , "send to queue failed , %s %d" , strerror(errno) , errno);
+
+			(void)zfree(data_buf);
+			
+			return -1;
+		} else if (ret == 0) {
+			break;
+		}
 	}
 
 	(void)zfree(data_buf);
 	
-	return ret;
+	return 0;
 }
 
 int create_queue(){
@@ -119,9 +127,9 @@ void * run_loop(void * args) {
 		int ret = msgrcv(MSG_QUEUE_KEY , msgbuffer , 
 			sizeof(struct set_command_sync_data) , REDIS_PLUGIN_SYNC_SET_TYPE , IPC_NOWAIT);
 		if (ret == -1 && (errno == EAGAIN || errno == ENOMSG)) {
-			(void)usleep(DEFAULT_EXIT_INTERVAL * 20);
+			(void)usleep(DEFAULT_EXIT_INTERVAL * 4);
 		} else if (ret == -1){
-			serverLog(LL_WARNING , "get message from queue failed , %s" , strerror(errno));
+			serverLog(LL_WARNING , "get message from queue failed , %s:%d" , strerror(errno) , errno);
 
 			isRunning4Rep = 0;
 			delete_queue();
