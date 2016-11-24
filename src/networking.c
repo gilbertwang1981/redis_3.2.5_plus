@@ -1358,6 +1358,7 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
         freeClient(c);
         return;
     }
+	
     processInputBuffer(c);
 }
 
