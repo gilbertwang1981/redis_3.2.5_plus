@@ -6,6 +6,7 @@
 #define REDIS_PLUGIN_SYNC_SET_TYPE 1
 #define DEFAULT_EXIT_INTERVAL 5
 #define IP_ADDRESS_LENGTH 64
+#define DB_HC_FREQUENCE 50000
 
 #define DEFAULT_CACHE_BUFFER_LENGTH 1024 * 100
 
@@ -13,6 +14,8 @@
 #define REDIS_CMD_TYPE_DEL 1
 #define REDIS_CMD_TYPE_INCR 2
 #define REDIS_CMD_TYPE_DECR 3
+
+#define REDIS_CMD_NUM 6
 
 struct set_command_sync_data{
 	char key[SET_CMD_KEY_LENGTH];

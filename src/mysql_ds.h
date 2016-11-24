@@ -18,5 +18,7 @@ int load_white_list_from_db();
 
 int is_in_white_list(char * key);
 
+int health_check();
+
 #endif
 

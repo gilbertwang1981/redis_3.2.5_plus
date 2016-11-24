@@ -139,8 +139,6 @@ void setCommand(client *c) {
         }
     }
 
-	serverLog(LL_DEBUG , "set key,%s" , c->argv[2]->ptr);
-
 	if (is_in_white_list(c->argv[1]->ptr) == 0) {
 		int iExpire = -1;
 		if (expire != 0) {
