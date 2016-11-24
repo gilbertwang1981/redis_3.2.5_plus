@@ -121,6 +121,7 @@ int load_white_list_from_db(){
 	            while ((row = mysql_fetch_row(res))) {  
 			        for (i = 0; i < fields; i++) {
 						struct white_list_data * whiteList = (struct white_list_data *)zmalloc(sizeof(struct white_list_data));
+						(void)memset(whiteList->key , 0x00 , SET_CMD_KEY_LENGTH);
 						(void)strncpy(whiteList->key , row[i] , strlen(row[i]));
 
 						white_list = listAddNodeHead(white_list , whiteList);
