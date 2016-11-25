@@ -26,8 +26,9 @@ int sync_data_to_queue(char * key , void * value , int vlength , int timeunit ,
 	data->expire = expire;
 	data->cmd = type;
 
-	(void)memset(data->key , 0x00 , SET_CMD_KEY_LENGTH);
-	(void)memset(data->value , 0x00 , SET_CMD_VALUE_LENGTH);
+	(void)memset(data->key , 0x00 , SET_CMD_KEY_LENGTH + 1);
+	(void)memset(data->value , 0x00 , SET_CMD_VALUE_LENGTH + 1);
+	(void)memset(data->ipaddress , 0x00 , IP_ADDRESS_LENGTH + 1);
 
 	(void)strcpy(data->ipaddress , ip);
 
@@ -72,6 +73,7 @@ int sync_to_queue(struct set_command_sync_data * data){
 	
 	(void)memcpy(data_buf->mtext , (char *)data , sizeof(struct set_command_sync_data));
 
+	int counter = 0;
 	while (1) {
 		int ret = msgsnd(MSG_QUEUE_KEY[data->cmd] , data_buf , sizeof(struct set_command_sync_data) , IPC_NOWAIT);
 		if (ret == -1 && errno != EAGAIN) {
@@ -81,6 +83,12 @@ int sync_to_queue(struct set_command_sync_data * data){
 			
 			return -1;
 		} else if (ret == 0) {
+			break;
+		}
+
+		if (++ counter % DEFAULT_SND_MSG_RETRY_TIMES == 0) { 
+			serverLog(LL_WARNING , "retry to send into queue failed , %s" , strerror(errno));
+
 			break;
 		}
 	}
