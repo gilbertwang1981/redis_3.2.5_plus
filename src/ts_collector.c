@@ -36,14 +36,14 @@ int collect_counter(char * formatted_msg){
 	listIter * itr = listGetIterator(pegging_list , 0);
 	if (itr != 0) {
 		listNode * node = 0;
+		int offset = 0;
 		while ((node = listNext(itr)) != 0) {
 			struct ts_data_node * data = (struct ts_data_node *)(node->value);
 			(void)pthread_mutex_lock(&(data->counter_mutex));
-
-			int offset = 0;
+			
 			int i = 0;
 			for (;i < TS_MONITOR_COLLECTOR_SECS; i++) {
-				offset += sprintf(formatted_msg + offset , "[%d:%d]" , data->counter[TS_MONITOR_COLLECTOR_SECS - i - 1] , 
+				offset += sprintf(formatted_msg + offset , "[%s_%d:%d]" , data->counter_name , TS_MONITOR_COLLECTOR_SECS - i - 1 , 
 					 data->counter[i]);
 			}
 
