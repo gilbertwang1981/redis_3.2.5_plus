@@ -55,6 +55,7 @@
 #include <locale.h>
 #include <sys/socket.h>
 
+#include "t_tsmap.h"
 #include "sync.h"
 #include "mysql_ds.h"
 
@@ -297,7 +298,8 @@ struct redisCommand redisCommandTable[] = {
     {"pfcount",pfcountCommand,-2,"r",0,NULL,1,-1,1,0,0},
     {"pfmerge",pfmergeCommand,-2,"wm",0,NULL,1,-1,1,0,0},
     {"pfdebug",pfdebugCommand,-3,"w",0,NULL,0,0,0,0,0},
-    {"latency",latencyCommand,-2,"aslt",0,NULL,0,0,0,0,0}
+    {"latency",latencyCommand,-2,"aslt",0,NULL,0,0,0,0,0},
+    {"peg",peg,-2,"wm",0,NULL,1,1,1,0,0}
 };
 
 struct evictionPoolEntry *evictionPoolAlloc(void);
