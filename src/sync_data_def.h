@@ -16,6 +16,7 @@
 #define REDIS_CMD_TYPE_DEL 1
 #define REDIS_CMD_TYPE_INCR 2
 #define REDIS_CMD_TYPE_DECR 3
+#define REDIS_CMD_TYPE_MSET 4
 
 #define REDIS_CMD_NUM 6
 

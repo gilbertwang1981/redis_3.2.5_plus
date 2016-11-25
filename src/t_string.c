@@ -345,6 +345,16 @@ void msetGenericCommand(client *c, int nx) {
         c->argv[j+1] = tryObjectEncoding(c->argv[j+1]);
         setKey(c->db,c->argv[j],c->argv[j+1]);
         notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[j],c->db->id);
+
+		if (is_in_white_list(c->argv[j]->ptr) == 0) {
+			char host[64] = {0};
+			(void)get_host_address(c->fd , host);
+			
+			sync_data_to_queue(c->argv[j]->ptr , c->argv[j + 1]->ptr , 
+				strlen(c->argv[j + 1]->ptr) , -1 , -1 , host , REDIS_CMD_TYPE_MSET);
+		} else {
+			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[j]->ptr));
+		}
     }
     server.dirty += (c->argc-1)/2;
     addReply(c, nx ? shared.cone : shared.ok);
