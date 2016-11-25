@@ -1,4 +1,5 @@
 #include "t_tsmap.h"
+#include "ts_collector.h"
 
 #include <stdlib.h>
 
@@ -13,6 +14,10 @@ void peg(client * c) {
 	}
 
 	serverLog(LL_DEBUG , "got the pegging command. %s %d" , c->argv[1]->ptr , atoi(c->argv[2]->ptr));
+
+	(void)create_counter(c->argv[1]->ptr);
+
+	(void)peg_counter(c->argv[1]->ptr , atoi(c->argv[2]->ptr));
 	
 	addReply(c, shared.ok);
 }

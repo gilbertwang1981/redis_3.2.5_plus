@@ -58,6 +58,7 @@
 #include "t_tsmap.h"
 #include "sync.h"
 #include "mysql_ds.h"
+#include "ts_collector.h"
 
 /* Our shared "common" objects */
 
@@ -4127,6 +4128,10 @@ int main(int argc, char **argv) {
 
 	if (-1 == load_white_list_from_db()) {
 		serverLog(LL_WARNING,"WARNING: loading white list failed.");
+	}
+
+	if (-1 == init_ts_collector()){
+		serverLog(LL_WARNING,"WARNING: starting the collector failed.");
 	}
 
     aeSetBeforeSleepProc(server.el,beforeSleep);
