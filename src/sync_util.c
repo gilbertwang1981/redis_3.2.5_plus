@@ -1,5 +1,39 @@
 #include "sync_util.h"
 
+
+static int is_need_persistence = -1;
+static int is_need_switch_statstics = -1;
+
+int need_persistence(){
+	if (is_need_persistence != -1) {
+		return is_need_persistence;
+	} 
+	
+	char * is_need_persist = getenv("REDIS_PERSISTENCE_FLAG");
+	if (is_need_persist == 0) {
+		is_need_persistence = 0;
+	} else {
+		is_need_persistence = atoi(is_need_persist);
+	}
+
+	return is_need_persistence;
+}
+
+int need_switch_statstics(){
+	if (is_need_switch_statstics != -1) {
+		return is_need_switch_statstics;
+	}
+
+	char * is_need_switch_stat = getenv("REDIS_SWITCH_STAT_FLAG");
+	if (is_need_switch_stat == 0) {
+		is_need_switch_statstics = 0;
+	} else {
+		is_need_switch_statstics = atoi(is_need_switch_stat);
+	}
+
+	return is_need_switch_statstics;
+}
+
 int get_host_address(int fd , char * host) {
 	socklen_t len;
 	struct sockaddr_storage addr;
@@ -24,5 +58,7 @@ int get_host_address(int fd , char * host) {
 		
 	return 0;
 }
+
+
 
 

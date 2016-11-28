@@ -84,15 +84,19 @@ int peg_counter(char * counter_name , int delta){
 		return -1;
 	}
 
+	int ret = -1;
+	
 	(void)pthread_mutex_lock(&(counter->counter_mutex));
 
 	int current_timestamp = time(0);
 	int index = current_timestamp % TS_MONITOR_COLLECTOR_SECS;
 	counter->counter[index] += delta;
 
+	ret = counter->counter[index];
+
 	(void)pthread_mutex_unlock(&(counter->counter_mutex));
 	
-	return 0;
+	return ret;
 }
 
 struct ts_data_node * counter_get(char * counter_name){

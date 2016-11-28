@@ -33,6 +33,8 @@
 #include "sync.h"
 #include "mysql_ds.h"
 #include "sync_util.h"
+#include "t_tsmap.h"
+
 
 /*-----------------------------------------------------------------------------
  * String Commands
@@ -139,19 +141,21 @@ void setCommand(client *c) {
         }
     }
 
-	if (is_in_white_list(c->argv[1]->ptr) == 0) {
-		int iExpire = -1;
-		if (expire != 0) {
-			iExpire = atoi(expire->ptr);
-		}
+	if (need_persistence() == 1) {
+		if (is_in_white_list(c->argv[1]->ptr) == 0) {
+			int iExpire = -1;
+			if (expire != 0) {
+				iExpire = atoi(expire->ptr);
+			}
 
-		char host[64] = {0};
-		(void)get_host_address(c->fd , host);
-		
-		sync_data_to_queue(c->argv[1]->ptr , c->argv[2]->ptr , 
-			strlen(c->argv[2]->ptr) , unit , iExpire , host , REDIS_CMD_TYPE_SET);
-	} else {
-		serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+			char host[64] = {0};
+			(void)get_host_address(c->fd , host);
+			
+			sync_data_to_queue(c->argv[1]->ptr , c->argv[2]->ptr , 
+				strlen(c->argv[2]->ptr) , unit , iExpire , host , REDIS_CMD_TYPE_SET);
+		} else {
+			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+		}
 	}
 
     c->argv[2] = tryObjectEncoding(c->argv[2]);
@@ -346,14 +350,16 @@ void msetGenericCommand(client *c, int nx) {
         setKey(c->db,c->argv[j],c->argv[j+1]);
         notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[j],c->db->id);
 
-		if (is_in_white_list(c->argv[j]->ptr) == 0) {
-			char host[64] = {0};
-			(void)get_host_address(c->fd , host);
-			
-			sync_data_to_queue(c->argv[j]->ptr , c->argv[j + 1]->ptr , 
-				strlen(c->argv[j + 1]->ptr) , -1 , -1 , host , REDIS_CMD_TYPE_MSET);
-		} else {
-			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[j]->ptr));
+		if (need_persistence() == 1) {
+			if (is_in_white_list(c->argv[j]->ptr) == 0) {
+				char host[64] = {0};
+				(void)get_host_address(c->fd , host);
+				
+				sync_data_to_queue(c->argv[j]->ptr , c->argv[j + 1]->ptr , 
+					strlen(c->argv[j + 1]->ptr) , -1 , -1 , host , REDIS_CMD_TYPE_MSET);
+			} else {
+				serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[j]->ptr));
+			}
 		}
     }
     server.dirty += (c->argc-1)/2;
@@ -407,31 +413,43 @@ void incrDecrCommand(client *c, long long incr) {
 }
 
 void incrCommand(client *c) {
+	if (need_switch_statstics() == 1) {
+		peg(c);
+		
+		return;
+	}
+
     incrDecrCommand(c,1);
 
-	if (is_in_white_list(c->argv[1]->ptr) == 0) {
+	if (need_persistence() == 1) {
+		if (is_in_white_list(c->argv[1]->ptr) == 0) {
 
-		char host[64] = {0};
-		(void)get_host_address(c->fd , host);
-		
-		sync_data_to_queue(c->argv[1]->ptr , "1" , 
-			strlen("1") , -1 , -1 , host , REDIS_CMD_TYPE_INCR);
-	} else {
-		serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
-	}	
+			char host[64] = {0};
+			(void)get_host_address(c->fd , host);
+			
+			sync_data_to_queue(c->argv[1]->ptr , "1" , 
+				strlen("1") , -1 , -1 , host , REDIS_CMD_TYPE_INCR);
+		} else {
+			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+		}	
+	}
 }
 
 void decrCommand(client *c) {
+
+	
     incrDecrCommand(c,-1);
 
-	if (is_in_white_list(c->argv[1]->ptr) == 0) {
-		char host[64] = {0};
-		(void)get_host_address(c->fd , host);
-		
-		sync_data_to_queue(c->argv[1]->ptr , "1" , 
-			strlen("1") , -1 , -1 , host , REDIS_CMD_TYPE_DECR);
-	} else {
-		serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+	if (need_persistence() == 1) {
+		if (is_in_white_list(c->argv[1]->ptr) == 0) {
+			char host[64] = {0};
+			(void)get_host_address(c->fd , host);
+			
+			sync_data_to_queue(c->argv[1]->ptr , "1" , 
+				strlen("1") , -1 , -1 , host , REDIS_CMD_TYPE_DECR);
+		} else {
+			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+		}
 	}
 }
 
@@ -439,19 +457,22 @@ void incrbyCommand(client *c) {
     long long incr;
 
     if (getLongLongFromObjectOrReply(c, c->argv[2], &incr, NULL) != C_OK) return;
+	
     incrDecrCommand(c,incr);
 
-	if (is_in_white_list(c->argv[1]->ptr) == 0) {
-		char host[64] = {0};
-		(void)get_host_address(c->fd , host);
+	if (need_persistence() == 1) {
+		if (is_in_white_list(c->argv[1]->ptr) == 0) {
+			char host[64] = {0};
+			(void)get_host_address(c->fd , host);
 
-		char delta[64] = {0};
-		(void)sprintf(delta , "%lld" , incr);
-		
-		sync_data_to_queue(c->argv[1]->ptr , delta , 
-			strlen(delta) , -1 , -1 , host , REDIS_CMD_TYPE_INCR);
-	} else {
-		serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+			char delta[64] = {0};
+			(void)sprintf(delta , "%lld" , incr);
+			
+			sync_data_to_queue(c->argv[1]->ptr , delta , 
+				strlen(delta) , -1 , -1 , host , REDIS_CMD_TYPE_INCR);
+		} else {
+			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+		}
 	}
 }
 
@@ -459,19 +480,22 @@ void decrbyCommand(client *c) {
     long long incr;
 
     if (getLongLongFromObjectOrReply(c, c->argv[2], &incr, NULL) != C_OK) return;
+	
     incrDecrCommand(c,-incr);
 
-	if (is_in_white_list(c->argv[1]->ptr) == 0) {
-		char host[64] = {0};
-		(void)get_host_address(c->fd , host);
+	if (need_persistence() == 1) {
+		if (is_in_white_list(c->argv[1]->ptr) == 0) {
+			char host[64] = {0};
+			(void)get_host_address(c->fd , host);
 
-		char delta[64] = {0};
-		(void)sprintf(delta , "%lld" , incr);
-		
-		sync_data_to_queue(c->argv[1]->ptr , delta , 
-			strlen(delta) , -1 , -1 , host , REDIS_CMD_TYPE_DECR);
-	} else {
-		serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+			char delta[64] = {0};
+			(void)sprintf(delta , "%lld" , incr);
+			
+			sync_data_to_queue(c->argv[1]->ptr , delta , 
+				strlen(delta) , -1 , -1 , host , REDIS_CMD_TYPE_DECR);
+		} else {
+			serverLog(LL_DEBUG , "the key[%s] is not in the white list." , (char *)(c->argv[1]->ptr));
+		}
 	}
 }
 

@@ -8,6 +8,10 @@
 
 int get_host_address(int fd , char * host);
 
+int need_persistence();
+int need_switch_statstics();
+
+
 #endif
 
 

@@ -37,6 +37,9 @@
 #include <signal.h>
 #include <ctype.h>
 
+#include "sync_util.h"
+
+
 void slotToKeyAdd(robj *key);
 void slotToKeyDel(robj *key);
 void slotToKeyFlush(void);
@@ -346,6 +349,11 @@ void flushallCommand(client *c) {
 }
 
 void del_by_key(client * c , char * key) {
+
+	if (need_persistence() == 0) {
+		return;
+	}
+	
 	if (is_in_white_list(key) == 0) {
 		char host[64] = {0};
 		(void)get_host_address(c->fd , host);
