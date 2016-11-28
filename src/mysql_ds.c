@@ -145,10 +145,15 @@ int is_in_white_list(char * key){
 		while ((node = listNext(itr)) != 0) {
 			struct white_list_data * white_list_data = (struct white_list_data *)(node->value);
 			if (strcmp(white_list_data->key , key) == 0) {
+
+				listReleaseIterator(itr);
+				
 				return 0;
 			}
 		}
 	}
+
+	listReleaseIterator(itr);
 		
 	return -1;
 }

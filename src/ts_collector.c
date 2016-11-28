@@ -53,6 +53,8 @@ int collect_counter(char * formatted_msg){
 		}
 	}
 
+	listReleaseIterator(itr);
+
 	return 0;
 }
 
