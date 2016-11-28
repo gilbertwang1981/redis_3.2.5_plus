@@ -59,6 +59,7 @@
 #include "sync.h"
 #include "mysql_ds.h"
 #include "ts_collector.h"
+#include "ts_plugin.h"
 
 /* Our shared "common" objects */
 
@@ -4132,6 +4133,10 @@ int main(int argc, char **argv) {
 
 	if (-1 == init_ts_collector()){
 		serverLog(LL_WARNING,"WARNING: starting the collector failed.");
+	}
+
+	if (-1 == init_ts_plugin()){
+		serverLog(LL_WARNING,"WARNING: init the ts plugin failed.");
 	}
 
     aeSetBeforeSleepProc(server.el,beforeSleep);

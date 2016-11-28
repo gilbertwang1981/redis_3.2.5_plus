@@ -1,6 +1,7 @@
 #include "ts_collector.h"
 #include "adlist.h"
 #include "zmalloc.h"
+#include "ts_plugin.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -31,20 +32,28 @@ int create_counter(char * counter_name){
 	return 1;
 }
 
-int collect_counter(char * formatted_msg){
+int collect_counter(){
 
 	listIter * itr = listGetIterator(pegging_list , 0);
 	if (itr != 0) {
 		listNode * node = 0;
-		int offset = 0;
 		while ((node = listNext(itr)) != 0) {
 			struct ts_data_node * data = (struct ts_data_node *)(node->value);
 			(void)pthread_mutex_lock(&(data->counter_mutex));
 			
 			int i = 0;
 			for (;i < TS_MONITOR_COLLECTOR_SECS; i++) {
-				offset += sprintf(formatted_msg + offset , "[%s_%d:%d]" , data->counter_name , TS_MONITOR_COLLECTOR_SECS - i - 1 , 
-					 data->counter[i]);
+
+				if (i == 0){
+					ts_plugin_call_function(data->counter_name , TS_MONITOR_COLLECTOR_SECS - i - 1 , 
+						data->counter[i] , 0 , 1);
+				} else if (i == (TS_MONITOR_COLLECTOR_SECS - 1)) {
+					ts_plugin_call_function(data->counter_name , TS_MONITOR_COLLECTOR_SECS - i - 1 , 
+						data->counter[i] , 1 , 0);
+				} else {
+					ts_plugin_call_function(data->counter_name , TS_MONITOR_COLLECTOR_SECS - i - 1 , 
+						data->counter[i] , 0 , 0);
+				}
 			}
 
 			(void)memset(data->counter , 0x00 , sizeof(int) * TS_MONITOR_COLLECTOR_SECS);
@@ -61,11 +70,7 @@ void * run_collect_loop(void * args) {
 	UNUSED(args);
 
 	while (1) {
-
-		robj * channel = createStringObject(DEFAULT_PUB_AND_SUB_EVENT_NAME , strlen(DEFAULT_PUB_AND_SUB_EVENT_NAME));
-
-		char msg[DEFAULT_INTERNAL_NOTIFICATION_STR_LENGTH] = {0};
-		(void)collect_counter(msg);	
+		(void)collect_counter();	
 		
 		(void)sleep(TS_MONITOR_COLLECTOR_SECS);
 	}

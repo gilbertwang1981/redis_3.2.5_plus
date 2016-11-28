@@ -1,5 +1,6 @@
 #include "sync_util.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 
 static int is_need_persistence = -1;
 static int is_need_switch_statstics = -1;

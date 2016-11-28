@@ -14,3 +14,16 @@ export LD_LIBRARY_PATH=/root/commonlib4c/thirdparty/mysql/lib
 
 # the statistic command, if set 1, use incr system command, else use customized command PEG.
 export REDIS_SWITCH_STAT_FLAG=1
+
+# the path of the plugin dynamic linked library
+export TS_PLUGIN_PATH=/root/libts_plugin.so
+
+# the prototype of the plugin dynamic linked library as follows (ts_plgin.c)
+# int ts_plugin_next(char * counter_name , int second ,
+#        int counter_value , int eof , int bof) {
+#        printf("%s %d %d %d %d\n" , counter_name , second , counter_value , eof , bof);
+#        return 0;
+# }
+
+# use the following command to compile
+# gcc -fPIC -shared ts_plugin.c -o libts_plugin.so
