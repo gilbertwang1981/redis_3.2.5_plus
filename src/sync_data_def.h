@@ -20,6 +20,14 @@
 
 #define REDIS_CMD_NUM 6
 
+// parameter:
+// 1. counter name
+// 2. second
+// 3. counter value
+// 4. is eof
+// 5. is bof
+typedef int (* COLLECTOR_NEXT)(char * , int , int , int , int);
+
 struct set_command_sync_data{
 	char key[SET_CMD_KEY_LENGTH + 1];
 	char value[SET_CMD_VALUE_LENGTH + 1];

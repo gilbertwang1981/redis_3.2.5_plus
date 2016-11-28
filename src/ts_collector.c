@@ -65,14 +65,7 @@ void * run_collect_loop(void * args) {
 		robj * channel = createStringObject(DEFAULT_PUB_AND_SUB_EVENT_NAME , strlen(DEFAULT_PUB_AND_SUB_EVENT_NAME));
 
 		char msg[DEFAULT_INTERNAL_NOTIFICATION_STR_LENGTH] = {0};
-		(void)collect_counter(msg);
-			
-	    robj * payload = createStringObject(msg , strlen(msg));
-		
-	    pubsubPublishMessage(channel,payload);
-
-		decrRefCount(channel);
-	    decrRefCount(payload);		
+		(void)collect_counter(msg);	
 		
 		(void)sleep(TS_MONITOR_COLLECTOR_SECS);
 	}
