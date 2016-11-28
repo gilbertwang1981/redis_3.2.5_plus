@@ -51,9 +51,8 @@ int collect_counter(char * formatted_msg){
 
 			(void)pthread_mutex_unlock(&(data->counter_mutex));
 		}
+		listReleaseIterator(itr);
 	}
-
-	listReleaseIterator(itr);
 
 	return 0;
 }
@@ -113,8 +112,8 @@ struct ts_data_node * counter_get(char * counter_name){
 				return data;
 			}
 		}
+		listReleaseIterator(itr);
 	}
-	listReleaseIterator(itr);
 	
 	return 0;
 }

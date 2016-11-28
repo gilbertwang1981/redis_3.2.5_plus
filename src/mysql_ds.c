@@ -151,9 +151,9 @@ int is_in_white_list(char * key){
 				return 0;
 			}
 		}
+		
+		listReleaseIterator(itr);
 	}
-
-	listReleaseIterator(itr);
 		
 	return -1;
 }
