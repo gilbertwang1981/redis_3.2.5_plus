@@ -136,7 +136,7 @@ void * run_loop(void * args) {
 		int ret = msgrcv(MSG_QUEUE_KEY[*pIndex] , msgbuffer , 
 			sizeof(struct set_command_sync_data) , REDIS_PLUGIN_SYNC_SET_TYPE , IPC_NOWAIT);
 		if (ret == -1 && (errno == EAGAIN || errno == ENOMSG)) {
-			(void)usleep(DEFAULT_EXIT_INTERVAL * 10);
+			(void)usleep(DEFAULT_EXIT_INTERVAL * 1000 * 100);
 			if (++ counter % DB_HC_FREQUENCE == 0) {
 				health_check(*pIndex);
 				counter = 0;

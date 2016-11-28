@@ -415,7 +415,7 @@ void incrDecrCommand(client *c, long long incr) {
 void incrCommand(client *c) {
 	if (need_switch_statstics() == 1) {
 		peg(c);
-		
+
 		return;
 	}
 

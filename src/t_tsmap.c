@@ -27,6 +27,8 @@ void peg(client * c) {
 		addReply(c,shared.colon);
 		addReply(c,rsp);
 		addReply(c,shared.crlf);
+
+		decrRefCount(rsp);
 	}
 }
 

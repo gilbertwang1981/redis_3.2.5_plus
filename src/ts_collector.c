@@ -28,7 +28,7 @@ int create_counter(char * counter_name){
 
 	pegging_list = listAddNodeTail(pegging_list , node);
 
-	return 0;
+	return 1;
 }
 
 int collect_counter(char * formatted_msg){
@@ -106,11 +106,14 @@ struct ts_data_node * counter_get(char * counter_name){
 		while ((node = listNext(itr)) != 0) {
 			struct ts_data_node * data = (struct ts_data_node *)(node->value);
 			if (strcmp(data->counter_name , counter_name) == 0) {
+				listReleaseIterator(itr);
+				
 				return data;
 			}
 		}
 	}
-
+	listReleaseIterator(itr);
+	
 	return 0;
 }
 
