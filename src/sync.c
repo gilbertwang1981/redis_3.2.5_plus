@@ -9,6 +9,7 @@
 #include <pthread.h>
 
 #include "zmalloc.h"
+#include "sync_util.h"
 
 #include "mysql_ds.h"
 
@@ -21,6 +22,10 @@ static int MSG_QUEUE_IDS[REDIS_CMD_NUM] = {0x1000FFFF , 0x2000FFFF , 0x3000FFFF 
 
 int sync_data_to_queue(char * key , void * value , int vlength , int timeunit , 
 	int expire , char * ip , int type){
+
+	if (need_persistence() == 0) {
+		return 0;
+	}
 
 	struct set_command_sync_data * data = (struct set_command_sync_data *)zmalloc(sizeof(struct set_command_sync_data));
 	data->expire = expire;
@@ -60,6 +65,7 @@ int sync_data_to_queue(char * key , void * value , int vlength , int timeunit ,
 }
 
 int sync_to_queue(struct set_command_sync_data * data){
+	
 	if (MSG_QUEUE_KEY[data->cmd] == -1) {
 		MSG_QUEUE_KEY[data->cmd] = create_queue(MSG_QUEUE_IDS[data->cmd]);
 		if (MSG_QUEUE_KEY[data->cmd] == -1) {
@@ -163,6 +169,10 @@ void * run_loop(void * args) {
 
 int sync_init(){
 
+	if (need_persistence() == 0) {
+		return 0;
+	}
+
 	int i = 0;
 	for (;i < REDIS_CMD_NUM; i ++) {
 		int key = -1;
@@ -194,6 +204,10 @@ int sync_init(){
 }
 
 int sync_destory(){
+	if (need_persistence() == 0) {
+		return 0;
+	}
+	
 	int i = 0;
 	for (;i < REDIS_CMD_NUM; i ++) {
 		isRunning4Rep[i] = 0;

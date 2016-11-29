@@ -2,6 +2,7 @@
 #include "server.h"
 
 #include "mysql.h"
+#include "sync_util.h"
 
 #include "adlist.h"
 #include "zmalloc.h"
@@ -14,6 +15,11 @@ static MYSQL mysql_handle[REDIS_CMD_NUM];
 static list * white_list = 0;
 
 int mysql_ds_init(){
+
+	if (need_persistence() == 0) {
+		return 0;
+	}
+	
 	int i = 0;
 	for (;i < REDIS_CMD_NUM; i ++) {
 		(void)mysql_init(&mysql_handle[i]);
@@ -63,6 +69,10 @@ int mysql_ds_init(){
 }
 
 int mysql_ds_destory(){
+	if (need_persistence() == 0) {
+		return 0;
+	}
+	
 	int i = 0;
 	for (;i < REDIS_CMD_NUM; i++) {
 		(void)mysql_close(&mysql_handle[i]);
@@ -72,6 +82,7 @@ int mysql_ds_destory(){
 }
 
 int insert_log(struct set_command_sync_data * data){
+	
 	char sql[DEFAULT_CACHE_BUFFER_LENGTH] = {0};
 	(void)sprintf(sql , "insert into redis_log (dkey , dvalue , dexpire, dtimeunit , ip , cmd) values ("
 		"'%s' , '%s' , %d , %d , '%s' , %d)" , data->key , data->value , data->expire , data->timeunit ,
@@ -90,6 +101,11 @@ int insert_log(struct set_command_sync_data * data){
 }
 
 int load_white_list_from_db(){
+
+	if (need_persistence() == 0) {
+		return 0;
+	}
+	
 	white_list = listCreate();
 	if (white_list == 0) {
 		return -1;
@@ -159,6 +175,7 @@ int is_in_white_list(char * key){
 }
 
 int health_check(int index){
+	
 	char sql[DEFAULT_CACHE_BUFFER_LENGTH] = {0};
 	(void)sprintf(sql , "SELECT 1");
 
