@@ -15,8 +15,9 @@ export LD_LIBRARY_PATH=/root/commonlib4c/thirdparty/mysql/lib
 # the statistic command, if set 1, use incr system command, else use customized command PEG.
 export REDIS_SWITCH_STAT_FLAG=1
 
-# the path of the plugin dynamic linked library
-export TS_PLUGIN_PATH=/root/libts_plugin.so
+# the directory path of the plugin dynamic linked library,all the dynamic linked library will be put into this folder
+# when the redis is started, these dynamic linked libraries will be loaded automatically.
+export TS_PLUGIN_PATH=/root/ts_plugin
 
 # the prototype of the plugin dynamic linked library as follows (ts_plgin.c)
 # int ts_plugin_next(char * counter_name , int second ,
